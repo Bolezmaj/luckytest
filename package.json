@@ -1,0 +1,17 @@
+{
+    "name": "payment-backend",
+    "version": "1.0.0",
+    "description": "Backend for processing PayPal payments and generating licenses",
+    "scripts": {
+      "dev": "vercel dev",
+      "start": "vercel start"
+    },
+    "dependencies": {
+      "node-fetch": "^2.6.1",
+      "nodemailer": "^6.4.17"
+    },
+    "engines": {
+      "node": "14.x"
+    }
+  }
+  

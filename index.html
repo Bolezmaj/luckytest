@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buy Product - $10</title>
+    <script src="https://www.paypal.com/sdk/js?client-id=AUsUB0XbE33-ZcD0Z3PQjjbQ2hg7KZONmgEcsNnjcSFu9gAqh4bjPwTTASAoHMldCin60I0ucWcxE8xE"></script> <!-- Replace with your PayPal Client ID -->
+</head>
+<body>
+<h2>Buy Product - $10</h2>
+
+<!-- User email input -->
+<div>
+    <label for="email">Enter your Email:</label>
+    <input type="email" id="email" placeholder="Your email" required>
+</div>
+
+<!-- PayPal Button -->
+<div id="paypal-button-container"></div>
+
+<script>
+    paypal.Buttons({
+        createOrder: function(data, actions) {
+            return actions.order.create({
+                purchase_units: [{
+                    amount: {
+                        value: '10.00'
+                    }
+                }]
+            });
+        },
+        onApprove: async function(data, actions) {
+            const order = await actions.order.capture();
+            const email = document.getElementById('email').value;
+
+            if (!email) {
+                alert("Please enter your email");
+                return;
+            }
+
+            // Send payment details to the backend
+            const response = await fetch("/api/process-payment", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    orderID: order.id,
+                    userEmail: email,
+                    hwid: "user-hardware-id"  // Replace with actual hardware ID if possible
+                })
+            });
+
+            const result = await response.json();
+            if (result.token) {
+                alert(`Payment successful! Your license key: ${result.token}`);
+            } else {
+                alert("Payment failed");
+            }
+        }
+    }).render('#paypal-button-container');
+</script>
+</body>
+</html>
