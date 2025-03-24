@@ -18,16 +18,18 @@ module.exports = async (req, res) => {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${process.env.PAYPAL_ACCESS_TOKEN}`, // Use PayPal access token from Vercel env variable
+                'Authorization': `Bearer ${process.env.PAYPAL_ACCESS_TOKEN}`, // PayPal Access Token from environment variables
             }
         });
 
         const paypalData = await paypalResponse.json();
 
+        console.log("PayPal Response:", paypalData);  // Debugging: Log the response
+
         // Check if payment was successful
         if (paypalData.status === 'COMPLETED') {
             // Generate the license key using KeyAuth API
-            const keyAuthResponse = await fetch(`https://keyauth.win/api/seller/?sellerkey=9f889ee9b2606ed73c72ed19a924eef9&type=add&expiry=1&mask=******-******-******-******-******-******&level=1&amount=1&format=text`, {
+            const keyAuthResponse = await fetch(`https://keyauth.win/api/seller/?sellerkey=${process.env.KEYAUTH_SELLER_KEY}&type=add&expiry=1&mask=******-******-******-******-******-******&level=1&amount=1&format=text`, {
                 method: 'GET',
             });
 
@@ -37,8 +39,8 @@ module.exports = async (req, res) => {
             const transporter = nodemailer.createTransport({
                 service: 'gmail',
                 auth: {
-                    user: process.env.EMAIL,  // Use environment variable for email
-                    pass: process.env.EMAIL_PASSWORD,  // Use environment variable for email password/app password
+                    user: process.env.EMAIL,
+                    pass: process.env.EMAIL_PASSWORD,
                 }
             });
 
@@ -60,13 +62,13 @@ module.exports = async (req, res) => {
             });
 
             // Respond with a token (license key)
-            const token = `license-token-for-${hwid}`;  // Example of token generation
+            const token = `license-token-for-${hwid}`;
             return res.status(200).json({ token });
         } else {
-            return res.status(400).json({ message: 'Payment not completed successfully' });
+            return res.status(400).json({ message: 'Payment not completed successfully', paypalData });
         }
     } catch (error) {
         console.error('Error processing payment:', error);
-        return res.status(500).json({ message: 'Error processing payment' });
+        return res.status(500).json({ message: 'Error processing payment', error: error.message });
     }
 };
